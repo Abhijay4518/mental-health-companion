@@ -1,17 +1,19 @@
 import streamlit as st
-from google import genai
+import google.generativeai as genai
+
+st.set_page_config(page_title="Gemini Free Test")
 
 st.title("Gemini Free Tier Test")
 
-client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 if st.button("Test Gemini"):
     try:
-        response = client.models.generate_content(
-            model="gemini-1.5-flash-latest",
-            contents="Say hello in one short sentence."
-        )
+        response = model.generate_content("Say hello in one short sentence.")
         st.success(response.text)
     except Exception as e:
         st.error(str(e))
+))
 
