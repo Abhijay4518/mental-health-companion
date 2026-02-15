@@ -39,9 +39,11 @@ body {
 }
 .user-msg {
     background-color: #e3f2fd;
+    color: black;
 }
 .bot-msg {
     background-color: #f1f8e9;
+    color: black;
 }
 .mood-tag {
     font-size: 12px;
