@@ -8,7 +8,7 @@ st.title("🧠 AI Mental Health Companion")
 st.markdown("A safe, supportive space for students to express emotions and receive guidance.")
 
 client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
-MODEL_NAME = "gemini-1.5-pro"
+MODEL_NAME = "gemini-1.5-flash-latest"
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
