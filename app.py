@@ -161,6 +161,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 if st.session_state.chat_history:
+
     moods = [chat["mood"] for chat in st.session_state.chat_history]
     mood_counts = pd.Series(moods).value_counts()
 
