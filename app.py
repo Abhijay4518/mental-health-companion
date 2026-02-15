@@ -173,5 +173,28 @@ if st.session_state.chat_history:
     ax.set_xlabel("Mood")
     st.pyplot(fig)
 
+if st.session_state.chat_history:
+
+    st.subheader("📈 Mood Trend Over Time")
+
+    mood_numeric = []
+    mood_map = {
+        "Happy 😊": 3,
+        "Neutral 🙂": 2,
+        "Sad 😔": 1,
+        "Depressed 💔": 0
+    }
+
+    for chat in st.session_state.chat_history:
+        mood_numeric.append(mood_map.get(chat["mood"], 2))
+
+    trend_df = pd.DataFrame({
+        "Entry": range(1, len(mood_numeric) + 1),
+        "Mood Level": mood_numeric
+    })
+
+    st.line_chart(trend_df.set_index("Entry"))
+
+
 
 
