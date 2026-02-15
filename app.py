@@ -15,5 +15,3 @@ if st.button("Test Gemini"):
         st.success(response.text)
     except Exception as e:
         st.error(str(e))
-))
-
