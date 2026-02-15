@@ -18,8 +18,7 @@ This AI Mental Health Companion:
 - Tracks emotional trends
 """)
 st.sidebar.markdown("---")
-st.sidebar.write("👨‍💻 Developed by: Your Name")
-st.sidebar.write("🎓 Major Project 2026")
+st.sidebar.write("👨‍💻 Developed by: Abhijay Dileep Menon")
 
 st.markdown("""
 <style>
