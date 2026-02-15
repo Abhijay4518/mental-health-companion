@@ -8,6 +8,19 @@ st.set_page_config(
     page_icon="🧠",
     layout="centered"
 )
+st.sidebar.title("🧠 About This App")
+
+st.sidebar.info("""
+This AI Mental Health Companion:
+- Detects mood using NLP
+- Provides emotional support
+- Identifies crisis keywords
+- Tracks emotional trends
+""")
+st.sidebar.markdown("---")
+st.sidebar.write("👨‍💻 Developed by: Your Name")
+st.sidebar.write("🎓 Major Project 2026")
+
 st.markdown("""
 <style>
 body {
@@ -144,5 +157,21 @@ for chat in reversed(st.session_state.chat_history):
         {chat['bot']}
     </div>
     """, unsafe_allow_html=True)
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+if st.session_state.chat_history:
+    moods = [chat["mood"] for chat in st.session_state.chat_history]
+    mood_counts = pd.Series(moods).value_counts()
+
+    st.subheader("📊 Mood Analytics")
+
+    fig, ax = plt.subplots()
+    mood_counts.plot(kind="bar", ax=ax)
+    ax.set_ylabel("Frequency")
+    ax.set_xlabel("Mood")
+    st.pyplot(fig)
+
 
 
