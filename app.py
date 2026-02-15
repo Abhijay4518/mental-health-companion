@@ -1,17 +1,57 @@
 import streamlit as st
-import google.generativeai as genai
+import requests
+from datetime import datetime
 
-st.set_page_config(page_title="Gemini Free Test")
+st.set_page_config(page_title="Mental Health Companion", page_icon="🧠")
 
-st.title("Gemini Free Tier Test")
+st.title("🧠 AI Mental Health Companion")
+st.markdown("A safe space to express your feelings 💙")
 
-genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
-model = genai.GenerativeModel("gemini-1.5-flash")
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-if st.button("Test Gemini"):
+def generate_response(user_input):
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "model": "openai/gpt-3.5-turbo",
+        "messages": [
+            {"role": "system", "content": "You are a compassionate mental health support chatbot."},
+            {"role": "user", "content": user_input}
+        ]
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    result = response.json()
+    
+    return result["choices"][0]["message"]["content"]
+
+user_input = st.text_area("💬 How are you feeling today?")
+
+if st.button("Send") and user_input:
     try:
-        response = model.generate_content("Say hello in one short sentence.")
-        st.success(response.text)
+        reply = generate_response(user_input)
+        
+        st.session_state.chat_history.append({
+            "time": datetime.now().strftime("%H:%M"),
+            "user": user_input,
+            "bot": reply
+        })
     except Exception as e:
         st.error(str(e))
+
+st.subheader("Chat History")
+
+for chat in reversed(st.session_state.chat_history):
+    st.markdown(f"**🕒 {chat['time']}**")
+    st.markdown(f"**You:** {chat['user']}")
+    st.markdown(f"**AI:** {chat['bot']}")
+    st.markdown("---")
+
