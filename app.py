@@ -1,37 +1,28 @@
 import streamlit as st
+import requests
 from datetime import datetime
 from textblob import TextBlob
-import random
+import pandas as pd
+import matplotlib.pyplot as plt
 
 st.set_page_config(
-    page_title="Mental Health Companion",
+    page_title="AI Mental Health & Student Wellness Companion",
     page_icon="🧠",
     layout="centered"
 )
-st.sidebar.title("🧠 About This App")
-
-st.sidebar.info("""
-This AI Mental Health Companion:
-- Detects mood using NLP
-- Provides emotional support
-- Identifies crisis keywords
-- Tracks emotional trends
-""")
-st.sidebar.markdown("---")
-st.sidebar.write("👨‍💻 Developed by: Abhijay Dileep Menon")
-
 st.markdown("""
 <style>
-body {
-    background-color: #f4f6f9;
+.chat-box {
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    color: black;
 }
-.main {
-    background-color: #ffffff;
-    padding: 2rem;
-    border-radius: 15px;
+.user-msg {
+    background-color: #e3f2fd;
 }
-.stTextArea textarea {
-    border-radius: 10px;
+.bot-msg {
+    background-color: #f1f8e9;
 }
 .stButton button {
     background-color: #4CAF50;
@@ -41,56 +32,65 @@ body {
     width: 100%;
     font-weight: bold;
 }
-.stButton button:hover {
-    background-color: #45a049;
-}
-.chat-box {
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 12px;
-}
-.user-msg {
-    background-color: #e3f2fd;
-    color: black;
-}
-.bot-msg {
-    background-color: #f1f8e9;
-    color: black;
-}
-.mood-tag {
-    font-size: 12px;
-    color: #555;
-}
 </style>
 """, unsafe_allow_html=True)
+st.sidebar.title("🎓 Student Wellness Companion")
+section = st.sidebar.radio(
+    "Navigate",
+    ["Mental Support Chat", "Student Wellness", "Chat History"]
+)
 
-st.title("🧠 AI Mental Health Companion")
-st.markdown("A safe, supportive space for students to express emotions and receive guidance 💙")
-st.markdown("---")
-st.caption("⚠ This AI tool provides supportive guidance but is not a replacement for professional mental health care.")
-st.markdown("---")
+st.sidebar.markdown("---")
+st.sidebar.success("App Status: Live & Operational ✅")
+
+API_KEY = st.secrets["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"]
+
+def call_ai(messages):
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": "openai/gpt-3.5-turbo",
+        "messages": messages
+    }
+
+    response = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers=headers,
+        json=payload
+    )
+
+    result = response.json()
+    return result["choices"][0]["message"]["content"]
+
+def generate_ai_response(user_input):
+
+    system_prompt = """
+    You are a compassionate AI Student Wellness Companion.
+    Support students facing stress, anxiety, or academic pressure.
+    Respond in a calm, empathetic, and motivating tone.
+    Encourage balance between studies and mental health.
+    Avoid medical diagnosis and suggest seeking help if needed.
+    """
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_input}
+    ]
+
+    return call_ai(messages)
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 def check_crisis(text):
-    crisis_keywords = [
-        "suicide",
-        "kill myself",
-        "end my life",
-        "self harm",
-        "die",
-        "hopeless",
-        "worthless"
-    ]
-    for word in crisis_keywords:
-        if word in text.lower():
-            return True
-    return False
-def detect_mood(text):
-    analysis = TextBlob(text)
-    polarity = analysis.sentiment.polarity
+    keywords = ["suicide", "kill myself", "end my life", "self harm", "hopeless"]
+    return any(word in text.lower() for word in keywords)
 
+def detect_mood(text):
+    polarity = TextBlob(text).sentiment.polarity
     if polarity > 0.3:
         return "Happy 😊"
     elif polarity > 0:
@@ -99,101 +99,107 @@ def detect_mood(text):
         return "Sad 😔"
     else:
         return "Depressed 💔"
-def generate_response(mood):
-    responses = {
-        "Happy 😊": [
-            "I'm so glad you're feeling positive! Keep nurturing that energy 🌟",
-            "That’s wonderful to hear! Keep spreading that positivity!"
-        ],
-        "Neutral 🙂": [
-            "It’s okay to have balanced days. How can I support you today?",
-            "Thanks for sharing. Even neutral days matter."
-        ],
-        "Sad 😔": [
-            "I’m really sorry you're feeling this way. You're not alone.",
-            "It’s okay to feel sad sometimes. Take things one step at a time."
-        ],
-        "Depressed 💔": [
-            "I’m really sorry you're going through this. Please consider speaking with someone you trust.",
-            "Your feelings matter. Reaching out to a professional could really help."
-        ]
-    }
-    return random.choice(responses[mood])
-with st.form("chat_form", clear_on_submit=True):
-    user_input = st.text_area("💬 How are you feeling today?", height=120)
-    submitted = st.form_submit_button("Send Message")
 
-if submitted and user_input:
+if section == "Mental Support Chat":
 
-    if check_crisis(user_input):
-        st.error("🚨 If you are in immediate danger, please contact emergency services.")
-        st.info("India Mental Health Helpline: 📞 9152987821")
-    else:
-        mood = detect_mood(user_input)
-        reply = generate_response(mood)
+    st.title("🧠 AI Mental Health Companion")
+    st.markdown("Express your feelings safely 💙")
 
-        st.session_state.chat_history.append({
-            "time": datetime.now().strftime("%H:%M"),
-            "user": user_input,
-            "mood": mood,
-            "bot": reply
-        })
+    with st.form("chat_form", clear_on_submit=True):
+        user_input = st.text_area("💬 How are you feeling today?", height=120)
+        submitted = st.form_submit_button("Send Message")
 
-st.subheader("🗂 Conversation History")
+    if submitted and user_input:
 
-for chat in reversed(st.session_state.chat_history):
+        if check_crisis(user_input):
+            st.error("🚨 Please seek immediate professional help.")
+            st.info("India Helpline: 📞 9152987821")
+        else:
+            mood = detect_mood(user_input)
+            reply = generate_ai_response(user_input)
 
-    st.markdown(f"""
-    <div class="chat-box user-msg">
-        <b>You:</b> {chat['user']}<br>
-        <span class="mood-tag">Detected Mood: {chat['mood']}</span>
-    </div>
-    """, unsafe_allow_html=True)
+            st.session_state.chat_history.append({
+                "time": datetime.now().strftime("%H:%M"),
+                "user": user_input,
+                "mood": mood,
+                "bot": reply
+            })
 
-    st.markdown(f"""
-    <div class="chat-box bot-msg">
-        <b>AI Companion:</b><br>
-        {chat['bot']}
-    </div>
-    """, unsafe_allow_html=True)
+    st.subheader("🗂 Conversation")
 
-import pandas as pd
-import matplotlib.pyplot as plt
+    for chat in reversed(st.session_state.chat_history):
+        st.markdown(f"""
+        <div class="chat-box user-msg">
+            <b>You:</b> {chat['user']}<br>
+            <small>Mood: {chat['mood']}</small>
+        </div>
+        """, unsafe_allow_html=True)
 
-if st.session_state.chat_history:
+        st.markdown(f"""
+        <div class="chat-box bot-msg">
+            <b>AI:</b><br>
+            {chat['bot']}
+        </div>
+        """, unsafe_allow_html=True)
+    if st.session_state.chat_history:
+        moods = [chat["mood"] for chat in st.session_state.chat_history]
+        mood_counts = pd.Series(moods).value_counts()
 
-    moods = [chat["mood"] for chat in st.session_state.chat_history]
-    mood_counts = pd.Series(moods).value_counts()
+        st.subheader("📊 Mood Analytics")
+        fig, ax = plt.subplots()
+        mood_counts.plot(kind="bar", ax=ax)
+        st.pyplot(fig)
 
-    st.subheader("📊 Mood Analytics")
+        st.subheader("📈 Mood Trend")
+        mood_map = {"Happy 😊": 3, "Neutral 🙂": 2, "Sad 😔": 1, "Depressed 💔": 0}
+        numeric = [mood_map.get(m, 2) for m in moods]
+        trend_df = pd.DataFrame({"Entry": range(1, len(numeric)+1), "Mood Level": numeric})
+        st.line_chart(trend_df.set_index("Entry"))
 
-    fig, ax = plt.subplots()
-    mood_counts.plot(kind="bar", ax=ax)
-    ax.set_ylabel("Frequency")
-    ax.set_xlabel("Mood")
-    st.pyplot(fig)
+if section == "Student Wellness":
 
-if st.session_state.chat_history:
+    st.title("📊 Student Wellness Tracker")
 
-    st.subheader("📈 Mood Trend Over Time")
+    study = st.slider("📚 Study Hours", 0, 12, 2)
+    sleep = st.slider("😴 Sleep Hours", 0, 12, 6)
+    stress = st.slider("😰 Stress Level (0-10)", 0, 10, 5)
 
-    mood_numeric = []
-    mood_map = {
-        "Happy 😊": 3,
-        "Neutral 🙂": 2,
-        "Sad 😔": 1,
-        "Depressed 💔": 0
-    }
+    if st.button("Analyze Wellness"):
+        prompt = f"Study: {study} hrs, Sleep: {sleep} hrs, Stress: {stress}/10. Provide short wellness advice."
+        reply = generate_ai_response(prompt)
+        st.write(reply)
 
-    for chat in st.session_state.chat_history:
-        mood_numeric.append(mood_map.get(chat["mood"], 2))
-
-    trend_df = pd.DataFrame({
-        "Entry": range(1, len(mood_numeric) + 1),
-        "Mood Level": mood_numeric
+    data = pd.DataFrame({
+        "Metric": ["Study", "Sleep", "Stress"],
+        "Value": [study, sleep, stress]
     })
 
-    st.line_chart(trend_df.set_index("Entry"))
+    st.bar_chart(data.set_index("Metric"))
+
+if section == "Chat History":
+
+    st.title("🗂 Previous Chats")
+
+    if not st.session_state.chat_history:
+        st.warning("No chat history available.")
+    else:
+        for chat in reversed(st.session_state.chat_history):
+            st.markdown(f"""
+            <div class="chat-box user-msg">
+                <b>{chat['time']}</b><br>
+                {chat['user']}
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown(f"""
+            <div class="chat-box bot-msg">
+                {chat['bot']}
+            </div>
+            """, unsafe_allow_html=True)
+
+        if st.button("🗑 Clear History"):
+            st.session_state.chat_history = []
+            st.success("History Cleared")
 
 
 
