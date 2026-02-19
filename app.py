@@ -43,7 +43,7 @@ section = st.sidebar.radio(
 st.sidebar.markdown("---")
 st.sidebar.success("App Status: Live & Operational ✅")
 
-API_KEY = st.secrets["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"]
+API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
 def call_ai(messages):
     headers = {
